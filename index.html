@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen Misiologie Interactiv</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: The application is structured into three main thematic sections, accessible via a top navigation bar: 'Temeiuri Biblice', 'Grupări Sectare', and 'Analiză Comparativă'. This structure was chosen to logically guide the user from the foundational theological arguments (Biblical verses) to specific case studies (sectarian groups) and finally to a quantitative overview (demographic data). This flow facilitates a comprehensive understanding, moving from abstract principles to concrete examples and data-backed context, which is more effective for learning and retention than a linear report structure. User interaction is centered on clicking navigation items to switch content, selecting tabs for specific group analysis, and interacting with a chart to compare data across years, promoting exploration over passive reading. -->
+    <!-- Visualization & Content Choices:
+    - Report Info: Biblical verses against heresy. -> Goal: Provide foundational scriptural evidence. -> Viz/Presentation: Interactive grid of cards. -> Interaction: Click-to-reveal full verse text in a modal. -> Justification: Breaks up a long list of text into manageable, engaging pieces. -> Library/Method: HTML/CSS/JS.
+    - Report Info: Descriptions of 'Oastea Domnului', 'Petrache Lupu', 'Penticostali', 'New Age', 'Mormonii'. -> Goal: Summarize key characteristics of specific groups. -> Viz/Presentation: Tabbed content area. -> Interaction: Click tabs to switch between summaries. -> Justification: Organizes detailed information on multiple subjects cleanly, allowing for easy comparison without overwhelming the user. -> Library/Method: HTML/CSS/JS.
+    - Report Info: Religious census data from 1992 & 2011. -> Goal: Compare the demographic evolution of major religious groups. -> Viz/Presentation: Interactive bar chart. -> Interaction: Dropdown to select the year, with tooltips for exact numbers. -> Justification: A chart provides a much clearer and more immediate understanding of trends and scale than a raw data table. -> Library/Method: Chart.js (Canvas).
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #383838;
+        }
+        .nav-link {
+            transition: color 0.3s, border-color 0.3s;
+        }
+        .nav-link.active {
+            color: #4A5568;
+            border-bottom-color: #4A5568;
+        }
+        .nav-link:not(.active) {
+            color: #A0AEC0;
+            border-bottom-color: transparent;
+        }
+        .card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .tab-button.active {
+            background-color: #E2E8F0;
+            color: #2D3748;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 500px;
+            }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-700">Studiu Interactiv de Misiologie</h1>
+            <p class="text-lg text-gray-500 mt-2">O perspectivă Ortodoxă asupra fenomenului sectar</p>
+        </header>
+
+        <nav class="flex justify-center border-b mb-12">
+            <button class="nav-link text-lg font-medium py-4 px-6 border-b-2 active" onclick="showSection('temeiuri')">Temeiuri Biblice</button>
+            <button class="nav-link text-lg font-medium py-4 px-6 border-b-2" onclick="showSection('grupari')">Grupări Sectare</button>
+            <button class="nav-link text-lg font-medium py-4 px-6 border-b-2" onclick="showSection('analiza')">Analiză Comparativă</button>
+        </nav>
+
+        <main>
+            <section id="temeiuri">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-semibold text-gray-700">Fundamente Scripturistice</h2>
+                    <p class="mt-2 max-w-2xl mx-auto text-gray-600">Această secțiune prezintă 12 versete biblice esențiale care oferă o perspectivă ortodoxă asupra ereziilor și învățăturilor mincinoase. Aceste temeiuri scripturistice subliniază importanța discernământului și a păstrării dreptei credințe. Apăsați pe fiecare referință pentru a citi textul complet.</p>
+                </div>
+                <div id="verse-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                </div>
+            </section>
+
+            <section id="grupari" style="display: none;">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-semibold text-gray-700">Analiza Grupărilor Sectare</h2>
+                    <p class="mt-2 max-w-3xl mx-auto text-gray-600">Aici sunt prezentate sinteze ale unor mișcări și grupări religioase relevante în contextul românesc, analizate din perspectivă ortodoxă. Selectați o grupare pentru a explora istoria, specificul și principalele diferențe dogmatice față de Ortodoxie.</p>
+                </div>
+                <div class="max-w-4xl mx-auto">
+                    <div id="tabs" class="flex border-b mb-4 justify-center flex-wrap">
+                        <button class="tab-button py-2 px-4 font-medium text-gray-500 active" onclick="showTab(event, 'oastea')">Oastea Domnului</button>
+                        <button class="tab-button py-2 px-4 font-medium text-gray-500" onclick="showTab(event, 'petrache')">Petrache Lupu</button>
+                        <button class="tab-button py-2 px-4 font-medium text-gray-500" onclick="showTab(event, 'penticostali')">Penticostalii</button>
+                        <button class="tab-button py-2 px-4 font-medium text-gray-500" onclick="showTab(event, 'newage')">New Age</button>
+                        <button class="tab-button py-2 px-4 font-medium text-gray-500" onclick="showTab(event, 'mormonii')">Mormonii</button>
+                    </div>
+                    <div id="tab-content" class="bg-white p-6 rounded-lg shadow-md">
+                    </div>
+                </div>
+            </section>
+
+            <section id="analiza" style="display: none;">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-semibold text-gray-700">Evoluția Demografică a Cultelor</h2>
+                    <p class="mt-2 max-w-3xl mx-auto text-gray-600">Această secțiune vizualizează datele recensămintelor privind apartenența religioasă în România. Interacționați cu graficul pentru a compara numărul de adepți ai principalelor culte între anii 1992 și 2011, observând tendințele și dinamica peisajului religios.</p>
+                </div>
+                 <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-center mb-4">
+                        <select id="yearSelector" class="p-2 border rounded-md">
+                            <option value="2011">2011</option>
+                            <option value="1992">1992</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="religiousChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="verseModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle" class="text-2xl font-bold mb-4"></h3>
+            <p id="modalText" class="text-lg"></p>
+            <button onclick="closeModal()" class="mt-6 bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition">Închide</button>
+        </div>
+    </div>
+
+    <script>
+        const verses = [
+            { ref: "1 Ioan 4:1", text: "Iubiţilor, nu daţi crezare oricărui duh, ci cercetaţi duhurile dacă sunt de la Dumnezeu, fiindcă mulţi proroci mincinoşi au ieşit în lume." },
+            { ref: "1 Timotei 4:7", text: "Iar de basmele cele lumeşti şi băbeşti, fereşte-te şi deprinde-te cu dreapta credinţă." },
+            { ref: "2 Ioan 1:10", text: "Dacă cineva vine la voi şi nu aduce învăţătura aceasta, să nu-l primiţi în casă şi să nu-i ziceţi: Bun venit!" },
+            { ref: "Galateni 1:8", text: "Dar chiar dacă noi sau un înger din cer v-ar vesti altă Evanghelie decât aceea pe care v-am vestit-o, să fie anatema!" },
+            { ref: "Matei 24:4-5", text: "Vedeţi să nu vă amăgească cineva. Căci mulţi vor veni în numele Meu, zicând: Eu sunt Hristosul, şi pe mulţi îi vor amăgi." },
+            { ref: "Matei 24:23-24", text: "Atunci, de vă va zice cineva: Iată, aici este Hristosul, sau: Colo, să nu credeţi. Căci se vor ridica hristoşi mincinoşi şi proroci mincinoşi şi vor da semne mari şi minuni, ca să amăgească, de va fi cu putinţă, şi pe cei aleşi." },
+            { ref: "Matei 7:22-23", text: "Mulţi Îmi vor zice în ziua aceea: Doamne, Doamne, au nu în numele Tău am prorocit şi nu în numele Tău am scos demoni şi nu în numele Tău minuni multe am făcut? Şi atunci voi mărturisi lor: Niciodată nu v-am cunoscut pe voi. Depărtaţi-vă de la Mine, cei ce lucraţi fărădelegea." },
+            { ref: "Matei 7:15", text: "Feriţi-vă de prorocii mincinoşi, care vin la voi în haine de oi, iar pe dinăuntru sunt lupi răpitori." },
+            { ref: "Fapte 20:29-30", text: "Căci eu ştiu aceasta, că după plecarea mea vor intra între voi lupi îngrozitori, care nu vor cruţa turma. Şi dintre voi înşivă se vor ridica bărbaţi, grăind învăţături răstălmăcite, ca să tragă pe ucenici după ei." },
+            { ref: "2 Petru 2:1", text: "Au fost în popor şi proroci mincinoşi, după cum şi între voi vor fi învăţători mincinoşi, care vor strecura erezii pierzătoare şi, tăgăduind chiar pe Stăpânul Care i-a răscumpărat, îşi vor aduce lor grabnică pieire." },
+            { ref: "Tit 3:10", text: "De omul eretic, după întâia şi a doua mustrare, depărtează-te." },
+            { ref: "Iuda 1:4", text: "Căci s-au strecurat printre voi unii oameni, osândiţi de mult la această judecată, neevlavioşi, care schimbă harul Dumnezeului nostru în desfrânare şi care tăgăduiesc pe singurul nostru Stăpân şi Domn, pe Iisus Hristos." }
+        ];
+
+        const groupContent = {
+            oastea: {
+                title: "Oastea Domnului",
+                content: `
+                    <p class="mb-4"><strong>Definiție și Istoric:</strong> Oastea Domnului este o mișcare de renaștere spirituală în cadrul Bisericii Ortodoxe Române, inițiată în 1923 de către preotul Iosif Trifa. Scopul declarat era "aflarea și vestirea lui Iisus Hristos cel răstignit".</p>
+                    <p class="mb-4"><strong>Perioada Comunistă:</strong> După 1948, mișcarea a fost scoasă în ilegalitate de regimul comunist, devenind parte din "Biserica tăcerii". Membrii săi au refuzat colaborarea cu autoritățile și au fost persecutați.</p>
+                    <p class="mb-4"><strong>Reabilitarea:</strong> În 1990, Oastea Domnului a fost reabilitată de statul român și recunoscută de Sfântul Sinod al Bisericii Ortodoxe Române. Adunările lor au fost descrise de Dr. Ioan Bria ca o "Liturghie de după Liturghie", subliniind caracterul lor de aprofundare a vieții spirituale în completarea serviciului liturgic oficial.</p>
+                    <p><strong>Specific:</strong> Caracterul său este unul de revigorare a vieții duhovnicești, punând accent pe citirea Bibliei, rugăciune, cântări duhovnicești și moralitate. Deși a avut perioade de tensiune cu ierarhia bisericească, astăzi este integrată în viața Bisericii.</p>
+                `
+            },
+            petrache: {
+                title: "Fenomenul Petrache Lupu",
+                content: `
+                    <p class="mb-4"><strong>Origini:</strong> Petrache Lupu a fost un cioban din localitatea Maglavit, județul Dolj, care a pretins că a avut o serie de viziuni divine în anul 1935. Acesta susținea că i s-a arătat un personaj divin, "Moșul", care i-a transmis mesaje pentru popor și preoți.</p>
+                    <p class="mb-4"><strong>Mesajul:</strong> Mesajul central era un îndemn la pocăință, moralitate, respectarea sărbătorilor și a posturilor, și cinstirea părinților. Vestea viziunilor sale s-a răspândit rapid, transformând Maglavitul într-unul dintre cele mai mari centre de pelerinaj din România interbelică, atrăgând sute de mii de oameni.</p>
+                    <p class="mb-4"><strong>Poziția Bisericii:</strong> Biserica Ortodoxă Română a avut o atitudine rezervată și prudentă. S-au format comisii de anchetă, dar nu s-a ajuns la o recunoaștere oficială a caracterului divin al viziunilor. Fenomenul a fost tolerat datorită efectului moralizator pe care îl avea asupra maselor, dar nu a fost niciodată integrat oficial în doctrina sau practica Bisericii.</p>
+                    <p><strong>Declinul:</strong> Fenomenul și-a pierdut din amploare odată cu venirea regimului comunist, care a interzis pelerinajele. Astăzi, rămâne un episod important în istoria religiozității populare românești, dar fără a constitui o mișcare organizată.</p>
+                `
+            },
+            penticostali: {
+                title: "Cultul Penticostal",
+                content: `
+                    <p class="mb-4"><strong>Origini și Specific:</strong> Penticostalismul este o mișcare neoprotestantă apărută la începutul secolului XX în SUA. Elementul central al doctrinei este "Botezul cu Duhul Sfânt", o experiență personală distinctă de convertire, manifestată adesea prin "vorbirea în limbi" (glosolalie).</p>
+                    <p class="mb-4"><strong>Principalele Diferențe față de Ortodoxie:</strong></p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Sfintele Taine:</strong> Nu recunosc cele șapte Sfinte Taine. Practică acte de cult simbolice precum Botezul (la vârsta adultă, prin imersiune), Cina Domnului, căsătoria și ordinarea, dar nu le consideră mijloace sfințitoare de transmitere a harului divin.</li>
+                        <li><strong>Preoția și Ierarhia:</strong> Resping ierarhia bisericească sacramentală (diacon, preot, episcop). Adoptă principiul "preoției universale", conform căruia orice credincios poate interpreta Biblia și se poate ruga direct lui Dumnezeu.</li>
+                        <li><strong>Cultul Sfinților și Icoanelor:</strong> Nu cinstesc sfinții, moaștele, icoanele sau Sfânta Cruce, considerând aceste practici o formă de idolatrie.</li>
+                        <li><strong>Sfânta Tradiție:</strong> Au ca unică autoritate dogmatică Sfânta Scriptură (principiul Sola Scriptura), respingând Sfânta Tradiție ca izvor al revelației divine.</li>
+                        <li><strong>Pneumatologie:</strong> Accentuează manifestările extraordinare ale Duhului Sfânt (daruri spirituale, vindecări, prorocii), care pot duce la o abordare subiectivă și emoțională a credinței, în contrast cu lucrarea tainică și echilibrată a Duhului Sfânt în Tainele Bisericii Ortodoxe.</li>
+                    </ul>
+                `
+            },
+            newage: {
+                title: "New Age",
+                content: `
+                    <p class="mb-4"><strong>Definiție și Origini:</strong> New Age este un curent spiritual răspândit mai ales în Occident, pretinzând o apropiere mai mare de spiritualitate, cu scopul de a introduce omenirea într-o "nouă eră" (Era Vărsătorului), în care va domni iubirea universală. Este considerată o reînviere a gnosticismului. Mișcarea a început să se contureze în anii 1920-1930, având ca figuri influente pe Alice Bailey, o discipolă a teosofiei, care a vorbit despre "întoarcerea la Hristos" și a lansat ideea unor grupări de "bunăvoință mondială".</p>
+                    <p class="mb-4"><strong>Principii și Credințe Cheie:</strong></p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Non-organizare:</strong> Nu presupune o comunitate organizată, ci reuniuni periodice ale unor persoane care pregătesc sosirea unei noi ere, caracterizată printr-o profundă transformare a valorilor umane prin mijloace spirituale.</li>
+                        <li><strong>Era Vărsătorului:</strong> Elementul definitoriu este trecerea omenirii din constelația Peștilor (simbol al primilor creștini) în cea a Vărsătorului, simbolizând un mare progres spiritual. Anul exact al intrării în Era Vărsătorului este subiect de dezbatere (1962, 2012, 3573).</li>
+                        <li><strong>Divinitatea Interioară:</strong> Adepții susțin că fiecare individ, având origini divine, este chemat să-și construiască propriul drum spiritual. Aceasta se realizează printr-un "patrimoniu" care include tradiții mistice și religioase (șamanism, neopaganism, cabala, ocultism), dar mai ales prin propria experiență personală și propriul discernământ. Ghizii spirituali, guru sau îngerii pot oferi ajutor.</li>
+                        <li><strong>Sincretism:</strong> New Age este un fenomen global, alimentat de nevoia crescândă de supranatural ca alternativă la "frustrările omenirii". Se observă o scădere a numărului celor care frecventează bisericile tradiționale și o creștere a celor care își "construiesc singuri un Dumnezeu desacralizat, la comandă". Ideea de bază nu este de a îmbrățișa o anumită religie, ci de a integra diverse elemente spirituale.</li>
+                    </ul>
+                `
+            },
+            mormonii: {
+                title: "Mormonii (Biserica lui Iisus Hristos a Sfinților din Zilele din Urmă)",
+                content: `
+                    <p class="mb-4"><strong>Origini și Istoric:</strong> Biserica lui Iisus Hristos a Sfinților din Zilele din Urmă, cunoscută sub numele de mormoni, a fost fondată de Joseph Smith Jr. în 1830 în Statele Unite. Membrii cred că Smith a primit revelații divine care au restaurat Biserica creștină originală, care s-ar fi abătut de la adevăr după moartea apostolilor. Ei consideră "Cartea lui Mormon" drept o altă mărturie a lui Iisus Hristos, alături de Biblie.</p>
+                    <p class="mb-4"><strong>Principalele Diferențe față de Ortodoxie (și Creștinismul Tradițional):</strong></p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Scripturi Suplimentare:</strong> Pe lângă Biblie, mormonii folosesc "Cartea lui Mormon", "Doctrină și Legăminte" și "Perla de Mare Preț" ca scripturi canonice, considerate cuvinte revelate ale lui Dumnezeu. Ortodoxia recunoaște doar Biblia (Vechiul și Noul Testament) și Sfânta Tradiție ca izvoare ale revelației.</li>
+                        <li><strong>Natura lui Dumnezeu:</strong> Mormonii cred într-un Dumnezeu Tatăl care a fost cândva om și a progresat la divinitate, iar oamenii pot deveni, de asemenea, zei. Ortodoxia crede într-un singur Dumnezeu, Treimea (Tatăl, Fiul și Duhul Sfânt), care este etern și neschimbător, necreat și transcendent.</li>
+                        <li><strong>Natura lui Hristos:</strong> Deși Îl cinstesc pe Iisus Hristos ca Mântuitor, mormonii Îl văd ca pe fratele spiritual al oamenilor și al lui Lucifer, nu ca pe Fiul Unul-Născut al lui Dumnezeu, de aceeași ființă cu Tatăl, așa cum este înțeles în Ortodoxie.</li>
+                        <li><strong>Mântuirea:</strong> Mântuirea, în viziunea mormonă, implică credință, pocăință, botez, primirea Duhului Sfânt și perseverența în fapte bune și respectarea poruncilor. Ortodoxia accentuează harul divin prin Sfintele Taine și sinergia dintre har și liberul arbitru al omului.</li>
+                        <li><strong>Preoția:</strong> Mormonii au o preoție restaurată, acordată bărbaților demni, care le permite să săvârșească rânduieli. Ortodoxia are o preoție sacramentală apostolică, transmisă prin succesiune neîntreruptă de la Apostoli.</li>
+                        <li><strong>Cultul Sfinților și Icoanelor:</strong> Nu au cultul sfinților, al moaștelor sau al icoanelor.</li>
+                    </ul>
+                    <p class="mt-4 text-sm text-gray-500 italic">Notă: Informațiile despre mormoni sunt o sinteză generală și nu provin direct din documentele de curs furnizate.</p>
+                `
+            }
+        };
+
+        const censusData = {
+            '1992': {
+                labels: ['Ortodocși', 'Greco-Catolici', 'Reformați', 'Penticostali', 'Baptiști', 'Adventiști'],
+                data: [19802400, 223300, 802500, 221300, 109500, 76600]
+            },
+            '2011': {
+                labels: ['Ortodocși', 'Greco-Catolici', 'Reformați', 'Penticostali', 'Baptiști', 'Adventiști'],
+                data: [16307000, 150600, 601000, 362300, 112800, 80900]
+            }
+        };
+
+        let religiousChart;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const verseGrid = document.getElementById('verse-grid');
+            verses.forEach(verse => {
+                const card = document.createElement('div');
+                card.className = 'card bg-white p-6 rounded-lg shadow-md text-center';
+                card.innerHTML = `<h3 class="text-xl font-semibold text-gray-700">${verse.ref}</h3>`;
+                card.onclick = () => openModal(verse.ref, verse.text);
+                verseGrid.appendChild(card);
+            });
+
+            showTab(null, 'oastea');
+            
+            const ctx = document.getElementById('religiousChart').getContext('2d');
+            religiousChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: censusData['2011'].labels,
+                    datasets: [{
+                        label: 'Număr de adepți',
+                        data: censusData['2011'].data,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(153, 102, 255, 0.6)',
+                            'rgba(255, 159, 64, 0.6)',
+                            'rgba(255, 99, 132, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                             callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('ro-RO').format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('yearSelector').addEventListener('change', (e) => {
+                const year = e.target.value;
+                religiousChart.data.datasets[0].data = censusData[year].data;
+                religiousChart.data.labels = censusData[year].labels;
+                religiousChart.update();
+            });
+        });
+
+        function showSection(sectionId) {
+            document.querySelectorAll('main section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(sectionId).style.display = 'block';
+
+            document.querySelectorAll('nav .nav-link').forEach(link => {
+                link.classList.remove('active');
+                if(link.getAttribute('onclick').includes(sectionId)) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        function showTab(event, groupName) {
+            document.querySelectorAll('#tabs .tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            if(event) event.currentTarget.classList.add('active');
+            else document.querySelector('#tabs .tab-button').classList.add('active');
+
+            const tabContent = document.getElementById('tab-content');
+            const data = groupContent[groupName];
+            tabContent.innerHTML = `<h3 class="text-2xl font-bold mb-4 text-gray-800">${data.title}</h3><div class="text-gray-700 leading-relaxed">${data.content}</div>`;
+        }
+        
+        const modal = document.getElementById('verseModal');
+
+        function openModal(ref, text) {
+            document.getElementById('modalTitle').innerText = ref;
+            document.getElementById('modalText').innerText = text;
+            modal.style.display = "flex";
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+        }
+        
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+    </script>
+</body>
+</html>
